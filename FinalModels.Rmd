@@ -1,0 +1,107 @@
+---
+title: "FinalModels"
+author: "Johannes Vorster"
+date: "28/10/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+
+```{r}
+library(readr)
+library(randomForest)
+library(gbm)
+library(caret)
+library(pROC)
+```
+
+```{r}
+df <- read.csv("D:/Downloads/data_no_missing.csv", header = TRUE)
+tail(df)
+```
+
+```{r}
+df_fs <- df[,c("STATUS","STATUS_DATE","COMMENCEMENT_DATE","PAYPOINT_NAME",
+               "INCOME","PAYMENT_MODE","PREMIUM","PAYER_DATE_OF_BIRTH",
+               "INSURED_DATE_OF_BIRTH","TERM","PRODUCT_CODE")]
+df_fs$PRODUCT_CODE <- as.factor(df_fs$PRODUCT_CODE)
+df_fs$PAYMENT_MODE <- as.factor(df_fs$PAYMENT_MODE)
+df_fs$STATUS <- as.factor(as.numeric(as.factor(df_fs$STATUS))-1)
+
+df_fs$STATUS_DATE <- as.Date(df_fs$STATUS_DATE)
+df_fs$COMMENCEMENT_DATE <- as.Date(df_fs$COMMENCEMENT_DATE)
+df_fs$PAYER_DATE_OF_BIRTH <- as.Date(df_fs$PAYER_DATE_OF_BIRTH)
+df_fs$INSURED_DATE_OF_BIRTH <- as.Date(df_fs$INSURED_DATE_OF_BIRTH)
+
+head(df_fs)
+```
+
+```{r}
+set.seed(1234)
+ind <- sample(2, nrow(df_fs), replace = TRUE, prob=c(0.5, 0.5))
+train <- df_fs[ind==1,]
+test <- df_fs[ind==2,]
+```
+
+```{r}
+model_rf <- randomForest(STATUS ~ ., data = train)
+pred <- predict(model_rf, test[,-1], type = "class")
+
+confusionMatrix(as.factor(pred), as.factor(test$STATUS))
+
+pred <- as.numeric(as.vector(pred))
+auc(multiclass.roc(test$STATUS, pred, levels = levels(as.factor(test$STATUS))))
+```
+
+```{r}
+plot(model_rf)
+```
+
+```{r}
+save(model_rf, file = "randomForest.rda")
+```
+
+```{r}
+df_fs$PRODUCT_CODE <- as.numeric(as.factor(df_fs$PRODUCT_CODE))-1
+df_fs$PAYMENT_MODE <- as.numeric(as.factor(df_fs$PAYMENT_MODE))-1
+df_fs$STATUS <- as.numeric(df_fs$STATUS)-1
+df_fs$STATUS <- ifelse(df_fs$STATUS==0,0,1)
+
+
+df_fs$STATUS_DATE <- as.numeric(df_fs$STATUS_DATE-as.Date("1900-01-01"))
+df_fs$COMMENCEMENT_DATE <- as.numeric(df_fs$COMMENCEMENT_DATE-as.Date("1900-01-01"))
+df_fs$PAYER_DATE_OF_BIRTH <- as.numeric(df_fs$PAYER_DATE_OF_BIRTH-as.Date("1900-01-01"))
+df_fs$INSURED_DATE_OF_BIRTH <- as.numeric(df_fs$INSURED_DATE_OF_BIRTH-as.Date("1900-01-01"))
+
+head(df_fs)
+```
+
+```{r}
+set.seed(1234)
+ind <- sample(2, nrow(df_fs), replace = TRUE, prob=c(0.7, 0.3))
+train <- df_fs[ind==1,]
+test <- df_fs[ind==2,]
+```
+
+```{r}
+model_gbm <- gbm(STATUS ~ ., data = train, distribution = "bernoulli",
+                 n.trees = 500, interaction.depth = 4)
+summary(model_gbm)
+
+pred_test <- predict.gbm(object = model_gbm, newdata = test, n.trees = 500,
+                         type = "response")
+pred_test <- ifelse(pred_test>0.5,1,0)
+
+confusionMatrix(as.factor(pred_test), as.factor(test$STATUS))
+
+pred <- as.numeric(as.vector(pred_test))
+auc(test$STATUS, pred)
+```
+
+```{r}
+save(model_gbm, file = "gbm.rda")
+```

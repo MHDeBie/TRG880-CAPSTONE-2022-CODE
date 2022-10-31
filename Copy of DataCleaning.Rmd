@@ -1,0 +1,380 @@
+---
+title: "Data cleaning"
+author: "Johannes Vorster"
+date: "12/10/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import data
+
+```{r}
+library(readxl)
+library(dplyr)
+data <- read_excel("D:/Downloads/TRG_DAT.xlsx")
+head(data)
+```
+
+## Structure
+
+```{r}
+str(data)
+```
+
+## Data type changes
+
+```{r}
+data$PRODUCT_CODE <- as.factor(data$PRODUCT_CODE)
+data$INCOME <- as.numeric(data$INCOME)
+data$PAYMENT_MODE <- as.factor(data$PAYMENT_MODE)
+data$STATUS <- as.factor(data$STATUS)
+data$STATUS_DATE <- as.Date(data$STATUS_DATE)
+data$COMMENCEMENT_DATE <- as.Date(data$COMMENCEMENT_DATE)
+data$ID_DOCUMENT_CODE <- as.factor(data$ID_DOCUMENT_CODE)
+data$PAYER_DATE_OF_BIRTH <- as.Date(data$PAYER_DATE_OF_BIRTH)
+data$GENDER <- as.factor(data$GENDER)
+data$MARITAL_STATUS <- as.factor(data$MARITAL_STATUS)
+data$TITLE <- as.factor(data$TITLE)
+data$INSURED_ID_DESCRIPTION <- as.factor(data$INSURED_ID_DESCRIPTION)
+data$INSURED_DATE_OF_BIRTH <- as.Date(data$INSURED_DATE_OF_BIRTH)
+data$INSURED_GENDER <- as.factor(data$INSURED_GENDER)
+data$INSURED_MARITAL_STATUS <- as.factor(data$INSURED_MARITAL_STATUS)
+data$INSURED_TITLE <- as.factor(data$INSURED_TITLE)
+data$DATE_OF_BIRTH <- as.Date(data$DATE_OF_BIRTH)
+data$GENDER1 <- as.factor(data$GENDER1)
+data$ID_DOCUMENT <- as.factor(data$ID_DOCUMENT)
+```
+
+## Corrections
+
+## POLICY_NUMBER
+
+```{r}
+data %>%
+  group_by(POLICY_NUMBER) %>%
+  filter(n()>1) %>%
+  count(POLICY_NUMBER)
+#data <- subset(data,select = -c(POLICY_NUMBER))
+```
+
+## PRODUCT_CODE
+
+```{r}
+summary(data$PRODUCT_CODE)
+```
+
+## PREMIUM
+
+```{r}
+summary(data$PREMIUM)
+data %>%
+  tally(PREMIUM<0)
+quantile(data$PREMIUM,seq(0,1,0.1))
+# data %>%
+#   filter(PREMIUM>1005)
+data <- data %>%
+  filter(!(PREMIUM<0))
+```
+
+## INCOME
+
+```{r}
+summary(data$INCOME)
+data %>%
+  tally(INCOME==0)
+# quantile(data$INCOME,seq(0,1,0.1),na.rm = TRUE)
+# data %>%
+#   filter(INCOME>30000)
+# data <- data %>%
+#   filter(!(INCOME>30000))
+```
+
+## PAYMENT_METHOD
+
+```{r}
+summary(data$PAYMENT_MODE)
+data <- data %>%
+  mutate(PAYMENT_MODE = replace(PAYMENT_MODE, PAYMENT_MODE=="Add", "ADD"))
+data$PAYMENT_MODE <- droplevels(data$PAYMENT_MODE,factor("Add"))
+data <- data %>%
+  filter(!(PAYMENT_MODE=="PLS"))
+data$PAYMENT_MODE <- droplevels(data$PAYMENT_MODE,factor("PLS"))
+summary(data$PAYMENT_MODE)
+```
+
+## STATUS
+
+```{r}
+summary(data$STATUS)
+data <- data %>%
+  mutate(STATUS = replace(STATUS, STATUS=="Act", "ACT")) %>%
+  mutate(STATUS = replace(STATUS, STATUS=="Lap", "LAP"))
+data$STATUS <- droplevels(data$STATUS,factor(c("Act","Lap")))
+data <- data %>%
+  filter(!(STATUS=="TRM"))
+data$STATUS <- droplevels(data$STATUS,factor("TRM"))
+summary(data$STATUS)
+```
+
+## STATUS_DATE
+
+```{r}
+summary(data$STATUS_DATE)
+data %>%
+  tally(STATUS_DATE<COMMENCEMENT_DATE)
+```
+
+## COMMENCEMENT_DATE
+
+```{r}
+summary(data$COMMENCEMENT_DATE)
+data %>%
+  tally(COMMENCEMENT_DATE<PAYER_DATE_OF_BIRTH)
+data %>%
+  tally(COMMENCEMENT_DATE<INSURED_DATE_OF_BIRTH)
+data %>%
+  tally(COMMENCEMENT_DATE<DATE_OF_BIRTH)
+```
+
+## TERM
+
+```{r}
+summary(data$TERM)
+data %>%
+  filter(TERM>99) %>%
+  count(TERM)
+data <- data %>%
+  filter(!(TERM>99))
+summary(data$TERM)
+```
+
+## PAYFREQ
+
+```{r}
+summary(data$PAYFREQ)
+data %>%
+  count(PAYFREQ)
+data <- data %>%
+  filter(!(PAYFREQ==147))
+summary(data$PAYFREQ)
+#data <- subset(data,select = -c(PAYFREQ))
+```
+
+## ID_DOCUMENT_CODE
+
+```{r}
+summary(data$ID_DOCUMENT_CODE)
+data <- data %>%
+  filter(!(ID_DOCUMENT_CODE==3 | ID_DOCUMENT_CODE==4))
+data$ID_DOCUMENT_CODE <- droplevels(data$ID_DOCUMENT_CODE,factor(c(3,4)))
+summary(data$ID_DOCUMENT_CODE)
+```
+
+## OCCUPATION_CODE
+
+```{r}
+data %>%
+  count(OCCUPATION_CODE) %>%
+  arrange(desc(n))
+```
+
+## PAYER_DATE_OF_BIRTH
+
+```{r}
+summary(data$PAYER_DATE_OF_BIRTH)
+data %>%
+  tally(PAYER_DATE_OF_BIRTH>"2018-08-01")
+not_happend_yet <- as.numeric(data$PAYER_DATE_OF_BIRTH>"2018-08-01")
+data$PAYER_DATE_OF_BIRTH <- data$PAYER_DATE_OF_BIRTH-36525*not_happend_yet
+data %>%
+  tally(COMMENCEMENT_DATE<PAYER_DATE_OF_BIRTH)
+data <- data %>%
+  filter(!(COMMENCEMENT_DATE<PAYER_DATE_OF_BIRTH))
+```
+
+## GENDER
+
+```{r}
+summary(data$GENDER)
+data <- data %>%
+  filter(!(GENDER=="MFMFMF"))
+data$GENDER <- droplevels(data$GENDER,factor("MFMFMF"))
+summary(data$GENDER)
+```
+
+## MARITAL_STATUS
+
+```{r}
+summary(data$MARITAL_STATUS)
+```
+
+## TITLE
+
+```{r}
+summary(data$TITLE)
+data <- data %>%
+  mutate(TITLE = replace(TITLE, TITLE=="MR.", "MR"))
+data$TITLE <- droplevels(data$TITLE,factor("MR."))
+summary(data$TITLE)
+#data <- subset(data,select = -c(TITLE))
+```
+
+## INSURED_ID_DESCRIPTION
+
+```{r}
+summary(data$INSURED_ID_DESCRIPTION)
+```
+
+## OCCUPATION_DESC1
+
+```{r}
+data %>%
+  count(OCCUPATION_DESC1)
+#data <- subset(data,select = -c(OCCUPATION_DESC1))
+```
+
+## INSURED_DATE_OF_BIRTH
+
+```{r}
+summary(data$INSURED_DATE_OF_BIRTH)
+data %>%
+  tally(INSURED_DATE_OF_BIRTH>"2018-08-01")
+not_happend_yet <- as.numeric(data$INSURED_DATE_OF_BIRTH>"2018-08-01")
+data$INSURED_DATE_OF_BIRTH <- data$INSURED_DATE_OF_BIRTH-36525*not_happend_yet
+data %>%
+  tally(COMMENCEMENT_DATE<INSURED_DATE_OF_BIRTH)
+data <- data %>%
+  filter(!(COMMENCEMENT_DATE<INSURED_DATE_OF_BIRTH))
+```
+
+## INSURED_GENDER
+
+```{r}
+summary(data$INSURED_GENDER)
+```
+
+## INSURED_MARITAL_STATUS
+
+```{r}
+summary(data$INSURED_MARITAL_STATUS)
+```
+
+## INSURED_TITLE
+
+```{r}
+summary(data$INSURED_TITLE)
+data <- data %>%
+  mutate(INSURED_TITLE = replace(INSURED_TITLE, INSURED_TITLE=="MR.", "MR"))
+data$INSURED_TITLE <- droplevels(data$INSURED_TITLE,factor("MR."))
+summary(data$INSURED_TITLE)
+#data <- subset(data,select = -c(INSURED_TITLE))
+```
+
+## PAYPOINT_NAME
+
+```{r}
+data %>%
+  count(PAYPOINT_NAME)
+data$PAYPOINT_NAME <- gsub("Paypoint","",data$PAYPOINT_NAME)
+data$PAYPOINT_NAME <- as.numeric(data$PAYPOINT_NAME)
+summary(data$PAYPOINT_NAME)
+```
+
+## COMPANY_NAME
+
+```{r}
+data %>%
+  count(COMPANY_NAME)
+data$COMPANY_NAME <- gsub("Comp","",data$COMPANY_NAME)
+data$COMPANY_NAME <- as.numeric(data$COMPANY_NAME)
+summary(data$COMPANY_NAME)
+#data <- subset(data,select = -c(COMPANY_NAME))
+```
+
+## DATE_OF_BIRTH
+
+```{r}
+summary(data$DATE_OF_BIRTH)
+data %>%
+  tally(DATE_OF_BIRTH>"2018-08-01")
+not_happend_yet <- as.numeric(data$DATE_OF_BIRTH>"2018-08-01")
+data$DATE_OF_BIRTH <- data$DATE_OF_BIRTH-36525*not_happend_yet
+data %>%
+  tally(COMMENCEMENT_DATE<DATE_OF_BIRTH)
+data <- data %>%
+  filter(!(COMMENCEMENT_DATE<DATE_OF_BIRTH))
+```
+
+## GENDER1
+
+```{r}
+summary(data$GENDER1)
+```
+
+## ID_DOCUMENT
+
+```{r}
+summary(data$ID_DOCUMENT)
+data <- data %>%
+  filter(!(ID_DOCUMENT==12))
+data$ID_DOCUMENT <- droplevels(data$ID_DOCUMENT,factor(12))
+summary(data$ID_DOCUMENT)
+```
+
+## ps_lapse1
+
+```{r}
+summary(data$ps_lapse1)
+data %>%
+  tally(ps_lapse1<0)
+data <- data %>%
+  filter(!(ps_lapse1<0))
+```
+
+## xx
+
+```{r}
+#data <- subset(data,select = -c(xx))
+```
+
+## ee
+
+```{r}
+#data <- subset(data,select = -c(ee))
+```
+
+## nbank
+
+```{r}
+data %>%
+  count(nbank)
+```
+
+## nloans
+
+```{r}
+data %>%
+  count(nloans)
+```
+
+## NAS
+
+```{r}
+sapply(data, function(x) sum(is.na(x)))
+```
+
+## Summary
+
+```{r}
+summary(data)
+```
+
+## Export
+
+```{r}
+write.csv(data,"D:\\Downloads\\TRG_DAT_CLN_KEEP.csv", row.names = FALSE)
+```
+

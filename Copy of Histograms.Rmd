@@ -1,0 +1,321 @@
+---
+title: "Histograms"
+author: "Johannes Vorster"
+date: "17/10/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import data
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+options(scipen=999)
+data <- read_csv("D:\\Downloads\\TRG_DAT_CLN_RMV.csv")
+head(data)
+```
+
+## Structure
+
+```{r}
+str(data)
+```
+
+## Data type changes
+
+```{r}
+data$PRODUCT_CODE <- factor(data$PRODUCT_CODE,ordered = TRUE,levels = c(paste("A",1:27,sep = "")))
+data$PAYMENT_MODE <- as.factor(data$PAYMENT_MODE)
+data$STATUS <- as.factor(data$STATUS)
+data$ID_DOCUMENT_CODE <- as.factor(data$ID_DOCUMENT_CODE)
+data$GENDER <- as.factor(data$GENDER)
+data$MARITAL_STATUS <- as.factor(data$MARITAL_STATUS)
+data$INSURED_ID_DESCRIPTION <- as.factor(data$INSURED_ID_DESCRIPTION)
+data$INSURED_MARITAL_STATUS <- as.factor(data$INSURED_MARITAL_STATUS)
+data$GENDER1 <- as.factor(data$GENDER1)
+data$ID_DOCUMENT <- as.factor(data$ID_DOCUMENT)
+```
+
+## Histograms
+
+## PRODUCT_CODE
+
+```{r}
+pdf(file = "PRODUCT_CODE.pdf")
+ggplot(data, aes(x=PRODUCT_CODE)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,150000) + 
+  labs(x = "Code", y = "Frequency")
+```
+
+## PREMIUM
+
+```{r}
+pdf(file = "PREMIUM.pdf")
+ggplot(data, aes(x=PREMIUM)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,300000) + 
+  labs(x = "Rands", y = "Frequency")
+pdf(file = "PREMIUM1005.pdf")
+premium1005 <- data %>%
+  select(PREMIUM) %>%
+  filter(PREMIUM<=1005)
+ggplot(premium1005, aes(x=PREMIUM)) + 
+  geom_histogram(color="black", fill="white") + 
+  labs(x = "Rands", y = "Frequency")
+```
+
+## INCOME
+
+```{r}
+pdf(file = "INCOME.pdf")
+ggplot(data, aes(x=INCOME)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,300000) + 
+  labs(x = "Rands", y = "Frequency")
+pdf(file = "INCOME30000.pdf")
+income30000 <- data %>%
+  select(INCOME) %>%
+  filter(INCOME<=30000)
+ggplot(income30000, aes(x=INCOME)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,60000) + 
+  labs(x = "Rands", y = "Frequency")
+```
+
+## PAYMENT_MODE
+
+```{r}
+pdf(file = "PAYMENT_MODE.pdf")
+ggplot(data, aes(x=PAYMENT_MODE)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,125000) + 
+  labs(x = "Mode", y = "Frequency")
+```
+
+## STATUS
+
+```{r}
+pdf(file = "STATUS.pdf")
+ggplot(data, aes(x=STATUS)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,200000) + 
+  labs(x = "Status", y = "Frequency")
+pdf(file = "ACT.pdf")
+data$STATUS <- as.character(data$STATUS)
+active <- data %>%
+  select(STATUS) %>%
+  mutate(STATUS = replace(STATUS, STATUS!="ACT", "NOT_ACT"))
+active$STATUS <- as.factor(active$STATUS)
+ggplot(active, aes(x=STATUS)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,200000) + 
+  labs(x = "Status", y = "Frequency")
+```
+
+## STATUS_DATE
+
+```{r}
+pdf(file = "STATUS_DATE.pdf")
+ggplot(data, aes(x=STATUS_DATE)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,20000) + 
+  labs(x = "Date", y = "Frequency")
+```
+
+## COMMENCEMENT_DATE
+
+```{r}
+pdf(file = "COMMENCEMENT_DATE.pdf")
+ggplot(data, aes(x=COMMENCEMENT_DATE)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,25000) + 
+  labs(x = "Date", y = "Frequency")
+```
+
+## TERM
+
+```{r}
+pdf(file = "TERM.pdf")
+ggplot(data, aes(x=TERM)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,150000) + 
+  labs(x = "Term", y = "Frequency")
+```
+
+## ID_DOCUMENT_CODE
+
+```{r}
+pdf(file = "ID_DOCUMENT_CODE.pdf")
+ggplot(data, aes(x=ID_DOCUMENT_CODE)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,300000) + 
+  labs(x = "Code", y = "Frequency")
+```
+
+## OCCUPATION_CODE
+
+```{r}
+pdf(file = "OCCUPATION_CODE.pdf")
+ggplot(data, aes(x=OCCUPATION_CODE)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,50000) + 
+  labs(x = "Code", y = "Frequency")
+```
+
+## PAYER_DATE_OF_BIRTH
+
+```{r}
+pdf(file = "PAYER_DATE_OF_BIRTH.pdf")
+ggplot(data, aes(x=PAYER_DATE_OF_BIRTH)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,40000) + 
+  labs(x = "Date", y = "Frequency")
+```
+
+## GENDER
+
+```{r}
+pdf(file = "GENDER.pdf")
+ggplot(data, aes(x=GENDER)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,150000) + 
+  labs(x = "Gender", y = "Frequency")
+```
+
+## MARITAL_STATUS
+
+```{r}
+pdf(file = "MARITAL_STATUS.pdf")
+ggplot(data, aes(x=MARITAL_STATUS)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,200000) + 
+  labs(x = "Marital status", y = "Frequency")
+pdf(file = "GENDER_MARITAL_STATUS.pdf")
+ggplot(data) +
+  geom_bar(aes(x=MARITAL_STATUS, fill=GENDER),position=position_dodge()) + 
+  ylim(0,125000) + 
+  labs(x = "Status", y = "Frequency")
+```
+
+## INSURED_ID_DESCRIPTION
+
+```{r}
+pdf(file = "INSURED_ID_DESCRIPTION.pdf")
+ggplot(data, aes(x=INSURED_ID_DESCRIPTION)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,300000) + 
+  labs(x = "Code", y = "Frequency")
+```
+
+## INSURED_DATE_OF_BIRTH
+
+```{r}
+pdf(file = "INSURED_DATE_OF_BIRTH.pdf")
+ggplot(data, aes(x=INSURED_DATE_OF_BIRTH)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,40000) + 
+  labs(x = "Date", y = "Frequency")
+```
+
+## INSURED_GENDER
+
+```{r}
+pdf(file = "INSURED_GENDER.pdf")
+ggplot(data, aes(x=INSURED_GENDER)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,155000) + 
+  labs(x = "Gender", y = "Frequency")
+```
+
+## INSURED_MARITAL_STATUS
+
+```{r}
+pdf(file = "INSURED_MARITAL_STATUS.pdf")
+ggplot(data, aes(x=INSURED_MARITAL_STATUS)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,205000) + 
+  labs(x = "Status", y = "Frequency")
+pdf(file = "INSURED_GENDER_MARITAL_STATUS.pdf")
+ggplot(data) +
+  geom_bar(aes(x=INSURED_MARITAL_STATUS, fill=INSURED_GENDER),position=position_dodge()) + 
+  ylim(0,125000) + 
+  labs(x = "Status", y = "Frequency")
+```
+
+## PAYPOINT_NAME
+
+```{r}
+pdf(file = "PAYPOINT_NAME.pdf")
+ggplot(data, aes(x=PAYPOINT_NAME)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,125000) + 
+  labs(x = "Code", y = "Frequency")
+```
+
+## DATE_OF_BIRTH
+
+```{r}
+pdf(file = "DATE_OF_BIRTH.pdf")
+ggplot(data, aes(x=DATE_OF_BIRTH)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,50000) + 
+  labs(x = "Date", y = "Frequency")
+```
+
+## GENDER1
+
+```{r}
+pdf(file = "GENDER1.pdf")
+ggplot(data, aes(x=GENDER1)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,150000) + 
+  labs(x = "Gender", y = "Frequency")
+```
+
+## ID_DOCUMENT
+
+```{r}
+pdf(file = "ID_DOCUMENT.pdf")
+ggplot(data, aes(x=ID_DOCUMENT)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,250000) + 
+  labs(x = "Code", y = "Frequency")
+```
+
+## ps_lapse1
+
+```{r}
+pdf(file = "ps_lapse1.pdf")
+ggplot(data, aes(x=ps_lapse1)) + 
+  geom_histogram(color="black", fill="white") + 
+  ylim(0,200000) + 
+  labs(x = "Percentage", y = "Frequency")
+```
+
+## nbank
+
+```{r}
+pdf(file = "nbank.pdf")
+ggplot(data, aes(x=nbank)) + 
+  geom_bar(color="black", fill="white") + 
+  ylim(0,80000) + 
+  labs(x = "Number of banks", y = "Frequency")
+```
+
+## nloans
+
+```{r}
+pdf(file = "nloans.pdf")
+ggplot(data, aes(x=nloans)) + 
+  geom_bar(color="black", fill="white") + 
+  scale_x_discrete(limits=factor(1:9)) + 
+  ylim(0,40000) + 
+  labs(x = "Number of loans", y = "Frequency")
+```
+
